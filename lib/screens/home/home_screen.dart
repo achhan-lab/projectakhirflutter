@@ -31,8 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFAB() {
     return Container(
-      width: 56,
-      height: 56,
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: const LinearGradient(
@@ -42,9 +42,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF27AE60).withValues(alpha: 0.4),
+            color: const Color(0xFF27AE60).withValues(alpha: 0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+            spreadRadius: -4,
+          ),
+          BoxShadow(
+            color: const Color(0xFF2ECC71).withValues(alpha: 0.3),
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -53,7 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: () => Navigator.pushNamed(context, '/add-product'),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
+          splashColor: Colors.white.withValues(alpha: 0.3),
+          highlightColor: Colors.white.withValues(alpha: 0.1),
+          child: const Icon(Icons.add, color: Colors.white, size: 30),
         ),
       ),
     );
@@ -64,13 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
       onPressed: null,
       elevation: 0,
       highlightElevation: 0,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       child: ClipOval(
-        child: Image.asset(
-          'assets/images/samba.png',
-          width: 48,
-          height: 48,
-          fit: BoxFit.cover,
+        child: Container(
+          color: Colors.white,
+          child: Image.asset(
+            'assets/images/samba.png',
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );
@@ -98,60 +109,64 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, -2),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+            spreadRadius: -8,
           ),
         ],
       ),
       child: BottomAppBar(
         shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
+        notchMargin: 10,
         color: Colors.white,
         elevation: 0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildNavItem(
-                    index: 0,
-                    icon: Icons.home_outlined,
-                    activeIcon: Icons.home_rounded,
-                    label: 'Home',
-                  ),
-                  _buildNavItem(
-                    index: 1,
-                    icon: Icons.inventory_2_outlined,
-                    activeIcon: Icons.inventory_2_rounded,
-                    label: 'Produk',
-                  ),
-                ],
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildNavItem(
+                      index: 0,
+                      icon: Icons.home_outlined,
+                      activeIcon: Icons.home_rounded,
+                      label: 'Home',
+                    ),
+                    _buildNavItem(
+                      index: 1,
+                      icon: Icons.inventory_2_outlined,
+                      activeIcon: Icons.inventory_2_rounded,
+                      label: 'Produk',
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 48),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildNavItem(
-                    index: 2,
-                    icon: Icons.forum_outlined,
-                    activeIcon: Icons.forum_rounded,
-                    label: 'Forum',
-                  ),
-                  _buildNavItem(
-                    index: 3,
-                    icon: Icons.person_outline_rounded,
-                    activeIcon: Icons.person_rounded,
-                    label: 'Profil',
-                  ),
-                ],
+              const SizedBox(width: 48),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildNavItem(
+                      index: 2,
+                      icon: Icons.forum_outlined,
+                      activeIcon: Icons.forum_rounded,
+                      label: 'Forum',
+                    ),
+                    _buildNavItem(
+                      index: 3,
+                      icon: Icons.person_outline_rounded,
+                      activeIcon: Icons.person_rounded,
+                      label: 'Profil',
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -165,25 +180,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     final isActive = _idx == index;
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: InkWell(
         onTap: () => setState(() => _idx = index),
+        borderRadius: BorderRadius.circular(12),
+        splashColor: const Color(0xFF27AE60).withValues(alpha: 0.08),
         child: SizedBox(
           height: 56,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                isActive ? activeIcon : icon,
-                color: isActive ? const Color(0xFF27AE60) : Colors.grey[400],
-                size: 24,
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? const Color(0xFF27AE60).withValues(alpha: 0.1)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  isActive ? activeIcon : icon,
+                  color:
+                      isActive ? const Color(0xFF27AE60) : Colors.grey[400],
+                  size: 24,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 11,
-                  color: isActive ? const Color(0xFF27AE60) : Colors.grey[400],
+                  color:
+                      isActive ? const Color(0xFF27AE60) : Colors.grey[400],
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),

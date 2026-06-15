@@ -5,6 +5,7 @@ class CategoryChip extends StatelessWidget {
   final IconData? icon;
   final bool isSelected;
   final VoidCallback? onTap;
+  final Color? iconColor;
 
   const CategoryChip({
     super.key,
@@ -12,10 +13,14 @@ class CategoryChip extends StatelessWidget {
     this.icon,
     this.isSelected = false,
     this.onTap,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final activeIconColor = iconColor ?? Colors.white;
+    final inactiveIconColor = iconColor ?? const Color(0xFF27AE60);
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -41,7 +46,7 @@ class CategoryChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Colors.white : const Color(0xFF27AE60),
+                color: isSelected ? activeIconColor : inactiveIconColor,
               ),
               const SizedBox(width: 6),
             ],

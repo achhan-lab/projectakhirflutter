@@ -4,7 +4,9 @@ import '../../models/product_model.dart';
 import '../../models/product_image_model.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/app_toast.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'edit_product_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -105,7 +107,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Gagal menghubungi penjual.')),
       );
     }
   }
@@ -118,6 +120,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           images: _images,
           initialIndex: startIndex,
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Hapus Produk',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: const Text('Yakin ingin menghapus produk ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Batal', style: TextStyle(color: Colors.grey[500])),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                if (widget.product.id != null) {
+                  await _productService.deleteProduct(widget.product.id!);
+                  if (!mounted) return;
+                  AppToast.success(context, 'Produk berhasil dihapus');
+                  Navigator.pop(context, true);
+                }
+              } catch (e) {
+                if (!mounted) return;
+                AppToast.error(context, 'Gagal menghapus produk.');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Hapus'),
+          ),
+        ],
       ),
     );
   }
@@ -416,9 +459,72 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
-      // Fixed bottom button - only show for OTHER people's products
+      // Fixed bottom button - show edit/delete for own products, contact for others
       bottomNavigationBar: _isOwnProduct
-          ? null
+          ? Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 54,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  EditProductScreen(product: widget.product),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit_outlined, size: 20),
+                        label: const Text(
+                          'Edit Produk',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF3B82F6),
+                          side: const BorderSide(
+                              color: Color(0xFF3B82F6), width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 54,
+                    width: 54,
+                    child: OutlinedButton(
+                      onPressed: () => _confirmDelete(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: const Icon(Icons.delete_outline, size: 22),
+                    ),
+                  ),
+                ],
+              ),
+            )
           : Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               decoration: BoxDecoration(

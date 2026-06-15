@@ -66,7 +66,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      AppToast.error(context, 'Error: $e');
+      AppToast.error(context, 'Gagal mengupdate profil. Silakan coba lagi.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -74,7 +74,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text('Edit Profil',
@@ -179,6 +181,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 

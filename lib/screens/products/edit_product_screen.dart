@@ -113,7 +113,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
       AppToast.error(context, 'Harga harus lebih dari 0');
       return;
     }
-
     setState(() => _isLoading = true);
 
     try {
@@ -146,7 +145,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      AppToast.error(context, 'Error: $e');
+      AppToast.error(context, 'Gagal mengupdate produk.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -154,7 +153,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text(
@@ -295,6 +296,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 

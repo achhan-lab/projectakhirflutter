@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _logoRotation;
   late Animation<double> _textFade;
   late Animation<Offset> _textSlide;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -53,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) _textCtrl.forward();
     });
 
-    Timer(const Duration(seconds: 3), () async {
+    _timer = Timer(const Duration(seconds: 3), () async {
       final user = await AuthService().getCurrentUser();
       if (!mounted) return;
       if (user == null) {
@@ -66,6 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _timer?.cancel();
     _logoCtrl.dispose();
     _textCtrl.dispose();
     super.dispose();
@@ -73,7 +76,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
       body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
@@ -99,6 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
                     width: 130,
                     height: 130,
                     decoration: BoxDecoration(
+                      color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -153,6 +159,7 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
       ),
+    ),
     );
   }
 }

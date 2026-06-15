@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class GetStartedScreen extends StatefulWidget {
   const GetStartedScreen({super.key});
@@ -63,7 +64,9 @@ class _GetStartedScreenState extends State<GetStartedScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
       backgroundColor: const Color(0xFF1A8A4A),
       body: Container(
         width: double.infinity,
@@ -134,6 +137,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                         width: 100,
                         height: 100,
                         decoration: BoxDecoration(
+                          color: Colors.white,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -270,6 +274,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
           ],
         ),
       ),
+    ),
     );
   }
 

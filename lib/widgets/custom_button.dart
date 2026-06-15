@@ -5,6 +5,9 @@ class CustomButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isLoading;
   final Color? color;
+  final IconData? icon;
+  final double height;
+  final double fontSize;
 
   const CustomButton({
     super.key,
@@ -12,22 +15,25 @@ class CustomButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.color,
+    this.icon,
+    this.height = 52,
+    this.fontSize = 16,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = color ?? const Color(0xFF27AE60);
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: height,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? const Color(0xFF27AE60),
-          disabledBackgroundColor:
-              (color ?? const Color(0xFF27AE60)).withValues(alpha: 0.5),
+          backgroundColor: bgColor,
+          disabledBackgroundColor: bgColor.withValues(alpha: 0.5),
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
         child: isLoading
@@ -39,15 +45,24 @@ class CustomButton extends StatelessWidget {
                   strokeWidth: 2.5,
                 ),
               )
-            : Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
-      ),
+        ),
     );
   }
 }

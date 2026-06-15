@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/forum_post_model.dart';
 import '../../services/forum_service.dart';
 import '../../widgets/app_toast.dart';
+import 'create_post_screen.dart';
 
 class ForumDetailScreen extends StatefulWidget {
   final ForumPostModel post;
@@ -85,6 +86,18 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
     }
   }
 
+  void _editPost() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreatePostScreen(editPost: widget.post),
+      ),
+    );
+    if (result == true && mounted) {
+      Navigator.pop(context, true);
+    }
+  }
+
   void _deletePost() {
     showDialog(
       context: context,
@@ -108,7 +121,7 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
                   Navigator.pop(context, true);
                 }
               } catch (e) {
-                if (mounted) AppToast.error(context, 'Error: $e');
+                if (mounted) AppToast.error(context, 'Gagal menghapus postingan.');
               }
             },
             style: ElevatedButton.styleFrom(
@@ -154,8 +167,21 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
               ),
               onSelected: (value) {
                 if (value == 'delete') _deletePost();
+                if (value == 'edit') _editPost();
               },
               itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_outlined,
+                          size: 20, color: Color(0xFF3B82F6)),
+                      SizedBox(width: 10),
+                      Text('Edit',
+                          style: TextStyle(color: Color(0xFF3B82F6))),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(
@@ -257,38 +283,6 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
                       ),
                     ],
                   ),
-                  // WhatsApp number row
-                  if (displayPhone != null) ...[
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF25D366).withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF25D366).withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.phone_outlined,
-                              size: 18, color: Color(0xFF25D366)),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              '+$displayPhone',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1A1A2E),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),

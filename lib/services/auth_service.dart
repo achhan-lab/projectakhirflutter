@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/database/sqlite_service.dart';
@@ -6,15 +7,27 @@ import '../models/user_model.dart';
 class AuthService {
   final SQLiteService _db = SQLiteService();
 
+  /// Simple password hashing using FNV-1a (no external package needed)
+  static String hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    int hash = 0x811c9dc5;
+    for (final byte in bytes) {
+      hash ^= byte;
+      hash = (hash * 0x01000193) & 0xFFFFFFFF;
+    }
+    return hash.toRadixString(16).padLeft(8, '0');
+  }
+
   Future<int> register(UserModel user) async {
     try {
       debugPrint('🔐 Starting registration for: ${user.email}');
-      debugPrint('📱 Is Web: ${identical(1, 1.0) ? 'Likely Web' : 'Mobile'}');
 
       final now = DateTime.now().toIso8601String();
       final map = user.toMap();
       map['created_at'] = now;
       map['role'] = user.role;
+      // Hash password before storing
+      map['password'] = hashPassword(user.password);
 
       debugPrint('📝 User data to insert: $map');
 
@@ -41,13 +54,39 @@ class AuthService {
     try {
       debugPrint('🔑 Attempting login with email: $email');
 
-      final rows = await _db.query(
+      final hashedPassword = hashPassword(password);
+
+      // First try with hashed password (new accounts)
+      var rows = await _db.query(
         'users',
         where: 'email = ? AND password = ?',
-        whereArgs: [email, password],
+        whereArgs: [email, hashedPassword],
       );
 
-      debugPrint('🔍 Query result: ${rows.length} user(s) found');
+      // If not found, try with plain text password (old accounts - backward compatibility)
+      if (rows.isEmpty) {
+        rows = await _db.query(
+          'users',
+          where: 'email = ? AND password = ?',
+          whereArgs: [email, password],
+        );
+
+        // If found with plain text, update to hashed password
+        if (rows.isNotEmpty) {
+          final user = UserModel.fromMap(rows.first as Map<String, dynamic>);
+          if (user.id != null) {
+            await _db.update(
+              'users',
+              {'password': hashedPassword},
+              'id = ?',
+              [user.id],
+            );
+            debugPrint(' Migrated password to hashed version for user: ${user.nama}');
+          }
+        }
+      }
+
+      debugPrint(' Query result: ${rows.length} user(s) found');
 
       if (rows.isEmpty) {
         debugPrint('❌ Login failed: No user found');

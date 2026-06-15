@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/database/sqlite_service.dart';
+import 'auth_service.dart';
 
 class SeedService {
   final SQLiteService _db = SQLiteService();
@@ -33,7 +34,7 @@ class SeedService {
       {
         'nama': 'Andi Pratama',
         'email': '17001001',
-        'password': 'password123',
+        'password': AuthService.hashPassword('password123'),
         'no_whatsapp': '6281234567890',
         'role': 'user',
         'created_at': now,
@@ -41,7 +42,7 @@ class SeedService {
       {
         'nama': 'Siti Rahayu',
         'email': '17001002',
-        'password': 'password123',
+        'password': AuthService.hashPassword('password123'),
         'no_whatsapp': '6281234567891',
         'role': 'user',
         'created_at': now,
@@ -49,7 +50,7 @@ class SeedService {
       {
         'nama': 'Budi Santoso',
         'email': '17001003',
-        'password': 'password123',
+        'password': AuthService.hashPassword('password123'),
         'no_whatsapp': '6281234567892',
         'role': 'user',
         'created_at': now,
@@ -57,7 +58,7 @@ class SeedService {
       {
         'nama': 'Dewi Lestari',
         'email': '17001004',
-        'password': 'password123',
+        'password': AuthService.hashPassword('password123'),
         'no_whatsapp': '6281234567893',
         'role': 'user',
         'created_at': now,
@@ -65,7 +66,7 @@ class SeedService {
       {
         'nama': 'Rizky Firmansyah',
         'email': '17001005',
-        'password': 'password123',
+        'password': AuthService.hashPassword('password123'),
         'no_whatsapp': '6281234567894',
         'role': 'user',
         'created_at': now,

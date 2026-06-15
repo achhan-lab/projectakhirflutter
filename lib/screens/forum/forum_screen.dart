@@ -4,6 +4,7 @@ import '../../services/forum_service.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_toast.dart';
 import '../../widgets/skeleton_loading.dart';
+import '../../widgets/category_chip.dart';
 import 'create_post_screen.dart';
 import 'forum_detail_screen.dart';
 
@@ -97,6 +98,11 @@ class _ForumScreenState extends State<ForumScreen> {
     });
   }
 
+  void _clearSearch() {
+    _searchCtrl.clear();
+    _filterPosts();
+  }
+
   void _navigateToCreatePost() async {
     final result = await Navigator.push<bool>(
       context,
@@ -115,6 +121,16 @@ class _ForumScreenState extends State<ForumScreen> {
           authorName: authorName,
           currentUserId: _currentUserId,
         ),
+      ),
+    );
+    if (result == true) _loadPosts();
+  }
+
+  void _editPost(ForumPostModel post) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreatePostScreen(editPost: post),
       ),
     );
     if (result == true) _loadPosts();
@@ -143,7 +159,7 @@ class _ForumScreenState extends State<ForumScreen> {
                   _loadPosts();
                 }
               } catch (e) {
-                if (mounted) AppToast.error(context, 'Error: $e');
+                if (mounted) AppToast.error(context, 'Gagal menghapus postingan.');
               }
             },
             style: ElevatedButton.styleFrom(
@@ -203,19 +219,23 @@ class _ForumScreenState extends State<ForumScreen> {
                       ],
                     ),
                   ),
-                  GestureDetector(
-                    onTap: _navigateToCreatePost,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF27AE60), Color(0xFF2ECC71)],
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _navigateToCreatePost,
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF27AE60), Color(0xFF2ECC71)],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        borderRadius: BorderRadius.circular(14),
+                        child: const Icon(Icons.edit_square,
+                            color: Colors.white, size: 20),
                       ),
-                      child: const Icon(Icons.edit_square,
-                          color: Colors.white, size: 20),
                     ),
                   ),
                 ],
@@ -223,7 +243,7 @@ class _ForumScreenState extends State<ForumScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Search bar
+            // Search bar with clear button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -238,25 +258,45 @@ class _ForumScreenState extends State<ForumScreen> {
                     ),
                   ],
                 ),
-                child: TextField(
-                  controller: _searchCtrl,
-                  onChanged: (_) => _filterPosts(),
-                  style: const TextStyle(fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: 'Cari postingan...',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    prefixIcon: Icon(Icons.search_rounded,
-                        color: Colors.grey[400], size: 20),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchCtrl,
+                        onChanged: (_) => _filterPosts(),
+                        style: const TextStyle(fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: 'Cari postingan...',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          prefixIcon: Icon(Icons.search_rounded,
+                              color: Colors.grey[400], size: 20),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                    ),
+                    if (_searchCtrl.text.isNotEmpty)
+                      InkWell(
+                        onTap: _clearSearch,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: Colors.grey[400],
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                  ],
                 ),
               ),
             ),
             const SizedBox(height: 12),
 
-            // Category chips
+            // Category chips using CategoryChip widget
             SizedBox(
               height: 36,
               child: ListView.builder(
@@ -268,41 +308,13 @@ class _ForumScreenState extends State<ForumScreen> {
                   final isSelected = _selectedKategori == kat;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
+                    child: CategoryChip(
+                      label: kat,
+                      isSelected: isSelected,
                       onTap: () {
                         setState(() => _selectedKategori = kat);
                         _loadPosts();
                       },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFF27AE60)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: const Color(0xFF27AE60)
-                                        .withValues(alpha: 0.3),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Text(
-                          kat,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color:
-                                isSelected ? Colors.white : Colors.grey[600],
-                          ),
-                        ),
-                      ),
                     ),
                   );
                 },
@@ -320,6 +332,7 @@ class _ForumScreenState extends State<ForumScreen> {
                           color: const Color(0xFF27AE60),
                           onRefresh: () async => _loadPosts(),
                           child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 20),
                             itemCount: _filteredPosts.length,
@@ -343,132 +356,150 @@ class _ForumScreenState extends State<ForumScreen> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: GestureDetector(
-        onTap: () => _navigateToDetail(post),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Author row
-              Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFF27AE60),
-                          const Color(0xFF2ECC71).withValues(alpha: 0.8),
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        initial,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _navigateToDetail(post),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Author row
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF27AE60),
+                            const Color(0xFF2ECC71).withValues(alpha: 0.8),
+                          ],
                         ),
+                        shape: BoxShape.circle,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          authorName,
+                      child: Center(
+                        child: Text(
+                          initial,
                           style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A2E),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
                           ),
                         ),
-                        Text(
-                          _timeAgo(post.createdAt),
-                          style: TextStyle(
-                              fontSize: 11, color: Colors.grey[400]),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: katColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      post.kategori,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: katColor,
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  // Edit/Delete menu for owner
-                  if (isOwner)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert_rounded,
-                            size: 20, color: Colors.grey[400]),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        onSelected: (value) {
-                          if (value == 'delete') _deletePost(post);
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline,
-                                    size: 20, color: Colors.red),
-                                SizedBox(width: 10),
-                                Text('Hapus',
-                                    style: TextStyle(color: Colors.red)),
-                              ],
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            authorName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A2E),
                             ),
                           ),
+                          Text(
+                            _timeAgo(post.createdAt),
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey[400]),
+                          ),
                         ],
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Content
-              Text(
-                post.content,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF1A1A2E),
-                  height: 1.5,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: katColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        post.kategori,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: katColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    // Edit/Delete menu for owner
+                    if (isOwner)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: PopupMenuButton<String>(
+                          icon: Icon(Icons.more_vert_rounded,
+                              size: 20, color: Colors.grey[400]),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          onSelected: (value) {
+                            if (value == 'edit') _editPost(post);
+                            if (value == 'delete') _deletePost(post);
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_outlined,
+                                      size: 20, color: Color(0xFF3B82F6)),
+                                  SizedBox(width: 10),
+                                  Text('Edit',
+                                      style: TextStyle(
+                                          color: Color(0xFF3B82F6))),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline,
+                                      size: 20, color: Colors.red),
+                                  SizedBox(width: 10),
+                                  Text('Hapus',
+                                      style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+                const SizedBox(height: 12),
+
+                // Content
+                Text(
+                  post.content,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF1A1A2E),
+                    height: 1.5,
+                  ),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -476,53 +507,59 @@ class _ForumScreenState extends State<ForumScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFF27AE60).withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.forum_outlined,
-              size: 40,
-              color: Color(0xFF27AE60),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Belum ada postingan',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A2E),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Jadilah yang pertama posting di forum!',
-            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: _navigateToCreatePost,
-            icon: const Icon(Icons.edit, size: 18),
-            label: const Text('Buat Postingan'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF27AE60),
-              foregroundColor: Colors.white,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF27AE60).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.forum_outlined,
+                  size: 40,
+                  color: Color(0xFF27AE60),
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+              const Text(
+                'Belum ada postingan',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Jadilah yang pertama posting di forum!',
+                style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _navigateToCreatePost,
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text('Buat Postingan'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF27AE60),
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/skeleton_loading.dart';
+import '../../widgets/category_chip.dart';
 import '../products/product_detail_screen.dart';
 
 class BerandaScreen extends StatefulWidget {
@@ -119,6 +120,11 @@ class _BerandaScreenState extends State<BerandaScreen> {
     });
   }
 
+  void _clearSearch() {
+    _searchCtrl.clear();
+    _filterProducts();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,16 +163,27 @@ class _BerandaScreenState extends State<BerandaScreen> {
                           ),
                         ],
                       ),
-                      Image.asset(
-                        'assets/images/samba.png',
+                      Container(
                         width: 44,
                         height: 44,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/samba.png',
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // Search bar
+                  // Search bar with clear button
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -179,26 +196,46 @@ class _BerandaScreenState extends State<BerandaScreen> {
                         ),
                       ],
                     ),
-                    child: TextField(
-                      controller: _searchCtrl,
-                      onChanged: (_) => _filterProducts(),
-                      style: const TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'Cari produk, jasa, atau karya...',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        prefixIcon: Icon(Icons.search_rounded,
-                            color: Colors.grey[400], size: 22),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchCtrl,
+                            onChanged: (_) => _filterProducts(),
+                            style: const TextStyle(fontSize: 14),
+                            decoration: InputDecoration(
+                              hintText: 'Cari produk, jasa, atau karya...',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              prefixIcon: Icon(Icons.search_rounded,
+                                  color: Colors.grey[400], size: 22),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        if (_searchCtrl.text.isNotEmpty)
+                          InkWell(
+                            onTap: _clearSearch,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Icon(
+                                Icons.close_rounded,
+                                color: Colors.grey[400],
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 8),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Category chips
+                  // Category chips using CategoryChip widget
                   SizedBox(
                     height: 42,
                     child: ListView.builder(
@@ -211,7 +248,10 @@ class _BerandaScreenState extends State<BerandaScreen> {
                                 item['label'] == 'Semua');
                         return Padding(
                           padding: const EdgeInsets.only(right: 10),
-                          child: GestureDetector(
+                          child: CategoryChip(
+                            label: item['label'] as String,
+                            icon: item['icon'] as IconData,
+                            isSelected: isSelected,
                             onTap: () {
                               setState(() {
                                 _selectedKategori = isSelected
@@ -220,59 +260,6 @@ class _BerandaScreenState extends State<BerandaScreen> {
                                 _filterProducts();
                               });
                             },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFF27AE60)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: const Color(0xFF27AE60)
-                                              .withValues(alpha: 0.3),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : [
-                                        BoxShadow(
-                                          color: Colors.black
-                                              .withValues(alpha: 0.04),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    item['icon'] as IconData,
-                                    size: 16,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : item['color'] as Color,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    item['label'] as String,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : const Color(0xFF4A4A68),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
                         );
                       },
@@ -355,41 +342,47 @@ class _BerandaScreenState extends State<BerandaScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: const Color(0xFF27AE60).withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.shopping_bag_outlined,
-              size: 48,
-              color: Color(0xFF27AE60),
-            ),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF27AE60).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.shopping_bag_outlined,
+                  size: 48,
+                  color: Color(0xFF27AE60),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Belum ada produk',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Jadilah yang pertama menjual produk!',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'Belum ada produk',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A2E),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Jadilah yang pertama menjual produk!',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

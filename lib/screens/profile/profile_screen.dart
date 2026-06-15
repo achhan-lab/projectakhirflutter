@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import 'settings_screen.dart';
@@ -22,6 +23,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _load() async {
+    final user = await AuthService().getCurrentUser();
+    if (user != null && mounted) {
+      setState(() => _user = user);
+    }
+  }
+
+  void _refreshProfile() async {
     final user = await AuthService().getCurrentUser();
     if (user != null && mounted) {
       setState(() => _user = user);
@@ -63,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Gagal keluar. Silakan coba lagi.')),
         );
       }
     }
@@ -75,7 +83,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final email = _user?.email ?? '';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
 
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -194,13 +204,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: 'Pengaturan',
                       subtitle: 'Notifikasi, akun, privasi',
                       color: const Color(0xFF8B5CF6),
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => const SettingsScreen(),
                           ),
                         );
+                        _refreshProfile();
                       },
                     ),
                     const SizedBox(height: 24),
@@ -235,6 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -245,9 +257,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -296,6 +311,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

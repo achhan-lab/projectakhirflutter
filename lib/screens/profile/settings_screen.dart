@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../settings/edit_profile_screen.dart';
 import '../settings/change_password_screen.dart';
 import '../settings/privacy_policy_screen.dart';
@@ -13,6 +14,24 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPref();
+  }
+
+  void _loadNotificationPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() => _notificationEnabled = prefs.getBool('notification_enabled') ?? true);
+    }
+  }
+
+  void _setNotification(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notification_enabled', value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +91,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Push Notification',
                           subtitle: 'Terima notifikasi produk baru',
                           value: _notificationEnabled,
-                          onChanged: (v) =>
-                              setState(() => _notificationEnabled = v),
+                          onChanged: (v) {
+                              setState(() => _notificationEnabled = v);
+                              _setNotification(v);
+                          },
                         ),
                       ],
                     ),
@@ -166,13 +187,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Center(
                       child: Column(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: Image.asset(
-                              'assets/images/samba.png',
-                              width: 48,
-                              height: 48,
-                              fit: BoxFit.cover,
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: Image.asset(
+                                'assets/images/samba.png',
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),

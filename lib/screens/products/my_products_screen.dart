@@ -96,7 +96,7 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
       );
     } catch (e) {
       if (mounted) {
-        AppToast.error(context, 'Error: $e');
+        AppToast.error(context, 'Gagal menghapus produk.');
       }
     }
   }
@@ -375,10 +375,14 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
           Container(
             width: 100,
             height: 100,
@@ -422,6 +426,8 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
             ),
           ),
         ],
+          ),
+        ),
       ),
     );
   }

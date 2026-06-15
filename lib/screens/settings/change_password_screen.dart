@@ -46,16 +46,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       }
 
       // Verify old password
-      if (user.password != oldPass) {
+      final hashedOldPass = AuthService.hashPassword(oldPass);
+      if (user.password != hashedOldPass) {
         AppToast.error(context, 'Password lama salah');
         return;
       }
 
-      // Update password
+      // Update password (hash it)
       final db = SQLiteService();
       await db.update(
         'users',
-        {'password': newPass},
+        {'password': AuthService.hashPassword(newPass)},
         'id = ?',
         [user.id],
       );
@@ -67,7 +68,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      AppToast.error(context, 'Error: $e');
+      AppToast.error(context, 'Gagal mengubah password. Silakan coba lagi.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -75,7 +76,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text('Ubah Password',
@@ -167,6 +170,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 

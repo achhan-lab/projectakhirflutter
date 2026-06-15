@@ -60,4 +60,22 @@ class ForumService {
   Future<int> deletePost(int id) async {
     return await _db.delete('forum_posts', 'id = ?', [id]);
   }
+
+  Future<int> updatePost(ForumPostModel post) async {
+    final map = post.toMap();
+    map.remove('created_at');
+    return await _db.update('forum_posts', map, 'id = ?', [post.id!]);
+  }
+
+  Future<ForumPostModel?> getPost(int id) async {
+    final rows = await _db.query(
+      'forum_posts',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (rows.isNotEmpty) {
+      return ForumPostModel.fromMap(rows.first as Map<String, dynamic>);
+    }
+    return null;
+  }
 }
