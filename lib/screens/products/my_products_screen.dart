@@ -5,6 +5,8 @@ import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_toast.dart';
 import '../../widgets/skeleton_loading.dart';
+import '../../core/utils/format_utils.dart';
+import '../home/home_screen.dart';
 import 'edit_product_screen.dart';
 
 class MyProductsScreen extends StatefulWidget {
@@ -14,7 +16,10 @@ class MyProductsScreen extends StatefulWidget {
   State<MyProductsScreen> createState() => _MyProductsScreenState();
 }
 
-class _MyProductsScreenState extends State<MyProductsScreen> {
+class _MyProductsScreenState extends RefreshableState<MyProductsScreen> {
+
+  @override
+  void refreshData() => _loadMyProducts();
   final ProductService _productService = ProductService();
   List<ProductModel> _myProducts = [];
   final Map<int, String?> _productImages = {};
@@ -111,12 +116,7 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
     if (result == true) _loadMyProducts();
   }
 
-  String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +228,7 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Rp ${_formatPrice(product.harga)}',
+                      'Rp ${FormatUtils.formatPrice(product.harga)}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF27AE60),

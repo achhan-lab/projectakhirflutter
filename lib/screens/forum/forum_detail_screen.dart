@@ -3,6 +3,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/forum_post_model.dart';
 import '../../services/forum_service.dart';
 import '../../widgets/app_toast.dart';
+import '../../core/utils/format_utils.dart';
+import '../../core/utils/app_constants.dart';
 import 'create_post_screen.dart';
 
 class ForumDetailScreen extends StatefulWidget {
@@ -25,47 +27,25 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
   final ForumService _forumService = ForumService();
   String? _authorWhatsapp;
 
-  final Map<String, Color> _kategoriColors = {
-    'PKM': const Color(0xFF8B5CF6),
-    'Supplier': const Color(0xFFF59E0B),
-    'Lowongan': const Color(0xFF3B82F6),
-    'Diskusi': const Color(0xFF27AE60),
-    'Lainnya': const Color(0xFF6B7280),
-  };
 
-  @override
-  void initState() {
-    super.initState();
-    _loadAuthorWhatsapp();
-  }
 
   void _loadAuthorWhatsapp() async {
     final wa = await _forumService.getAuthorWhatsapp(widget.post.userId);
     if (mounted) setState(() => _authorWhatsapp = wa);
   }
 
-  /// Convert 08xxx to 628xxx format
-  String _formatPhone(String phone) {
-    final cleaned = phone.replaceAll(RegExp(r'[^0-9]'), '');
-    if (cleaned.startsWith('0')) {
-      return '62${cleaned.substring(1)}';
-    }
-    return cleaned;
-  }
 
   bool get _isOwner =>
       widget.currentUserId != null && widget.post.userId == widget.currentUserId;
 
-  String _timeAgo(String? dateStr) {
-    if (dateStr == null) return '';
-    final date = DateTime.tryParse(dateStr);
-    if (date == null) return '';
-    final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return 'Baru saja';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
-    if (diff.inHours < 24) return '${diff.inHours} jam lalu';
-    if (diff.inDays < 7) return '${diff.inDays} hari lalu';
-    return '${diff.inDays ~/ 7} minggu lalu';
+  ForumPostModel? _currentPost;
+  bool _hasLiked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPost = widget.post;
+    _loadAuthorWhatsapp();
   }
 
   void _contactViaWhatsApp() async {
@@ -75,7 +55,7 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
       AppToast.error(context, 'Nomor WhatsApp tidak tersedia');
       return;
     }
-    final phone = _formatPhone(rawPhone);
+    final phone = FormatUtils.formatPhone(rawPhone);
     final msg = Uri.encodeComponent(
       'Halo ${widget.authorName}, saya tertarik dengan postingan kamu di forum SAMBA.',
     );
@@ -83,6 +63,29 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
     final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
       AppToast.error(context, 'Tidak dapat membuka WhatsApp');
+    }
+  }
+
+  void _toggleLike() async {
+    if (_currentPost == null || _currentPost!.id == null) return;
+    final newLikes = _hasLiked
+        ? _currentPost!.likes - 1
+        : _currentPost!.likes + 1;
+    final updated = ForumPostModel(
+      id: _currentPost!.id,
+      userId: _currentPost!.userId,
+      content: _currentPost!.content,
+      kategori: _currentPost!.kategori,
+      likes: newLikes,
+      comments: _currentPost!.comments,
+      createdAt: _currentPost!.createdAt,
+    );
+    await _forumService.updatePost(updated);
+    if (mounted) {
+      setState(() {
+        _hasLiked = !_hasLiked;
+        _currentPost = updated;
+      });
     }
   }
 
@@ -142,9 +145,10 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
     final initial = widget.authorName.isNotEmpty
         ? widget.authorName[0].toUpperCase()
         : 'A';
-    final katColor = _kategoriColors[widget.post.kategori] ?? Colors.grey;
+    final post = _currentPost ?? widget.post;
+    final katColor = kategoriColors[post.kategori] ?? Colors.grey;
     final displayPhone = _authorWhatsapp != null
-        ? _formatPhone(_authorWhatsapp!)
+        ? FormatUtils.formatPhone(_authorWhatsapp!)
         : null;
 
     return Scaffold(
@@ -258,7 +262,7 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              _timeAgo(widget.post.createdAt),
+                              FormatUtils.timeAgo(post.createdAt),
                               style: TextStyle(
                                   fontSize: 12, color: Colors.grey[500]),
                             ),
@@ -273,7 +277,7 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          widget.post.kategori,
+                          post.kategori,
                           style: TextStyle(
                             fontSize: 12,
                             color: katColor,
@@ -303,13 +307,49 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
                   ),
                 ],
               ),
-              child: Text(
-                widget.post.content,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF1A1A2E),
-                  height: 1.7,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.content,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF1A1A2E),
+                      height: 1.7,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Like button
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: _toggleLike,
+                        child: Row(
+                          children: [
+                            Icon(
+                              _hasLiked
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: _hasLiked ? Colors.red : Colors.grey[400],
+                              size: 22,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${post.likes}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _hasLiked
+                                    ? Colors.red
+                                    : Colors.grey[500],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

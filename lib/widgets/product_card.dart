@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
+import '../core/utils/format_utils.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -16,12 +17,7 @@ class ProductCard extends StatelessWidget {
     this.imagePath,
   });
 
-  String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +106,7 @@ class ProductCard extends StatelessWidget {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Rp ${_formatPrice(product.harga)}',
+                            'Rp ${FormatUtils.formatPrice(product.harga)}',
                             style: const TextStyle(
                               color: Color(0xFF27AE60),
                               fontWeight: FontWeight.w800,

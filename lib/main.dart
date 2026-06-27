@@ -7,6 +7,7 @@ import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/products/add_product_screen.dart';
 import 'screens/products/product_detail_screen.dart';
+import 'screens/colab/colab_screen.dart';
 import 'models/product_model.dart';
 
 void main() async {
@@ -78,6 +79,7 @@ class MyApp extends StatelessWidget {
         '/register': (_) => const RegisterScreen(),
         '/home': (_) => const HomeScreen(),
         '/add-product': (_) => const AddProductScreen(),
+        '/colab': (_) => const ColabScreen(),
       },
     );
   }

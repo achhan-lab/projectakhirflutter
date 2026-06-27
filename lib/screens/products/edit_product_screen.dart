@@ -5,6 +5,7 @@ import '../../models/product_model.dart';
 import '../../models/product_image_model.dart';
 import '../../services/product_service.dart';
 import '../../widgets/app_toast.dart';
+import '../../core/utils/app_constants.dart';
 
 class EditProductScreen extends StatefulWidget {
   final ProductModel product;
@@ -30,15 +31,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   static const int maxImages = 5;
   static const int maxSizeInBytes = 1048576;
 
-  final List<String> _categories = [
-    'Jasa',
-    'Makanan & Minuman',
-    'Barang Bekas',
-    'Elektronik',
-    'Buku',
-    'Fashion & Aksesoris',
-    'Lainnya',
-  ];
+
 
   @override
   void initState() {
@@ -219,8 +212,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 border: Border.all(color: Colors.grey[200]!),
               ),
               child: DropdownButtonFormField<String>(
-                initialValue: _kategori,
-                items: _categories
+                value: _kategori,
+                items: productCategories
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (v) => setState(() => _kategori = v ?? 'Lainnya'),

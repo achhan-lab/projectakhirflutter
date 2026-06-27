@@ -5,6 +5,8 @@ import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/product_model.dart';
 import '../../widgets/app_toast.dart';
+import '../../core/utils/format_utils.dart';
+import '../../core/utils/app_constants.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -28,16 +30,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   static const int maxImages = 5;
   static const int maxSizeInBytes = 1048576; // 1MB
 
-  final List<String> _categories = [
-    'Jasa',
-    'Makanan & Minuman',
-    'Barang Bekas',
-    'Elektronik',
-    'Buku',
-    'Fashion & Aksesoris',
-    'Lainnya',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -51,23 +43,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
-  /// Format number with dots: 1500000 -> 1.500.000
-  String _formatPriceInput(String value) {
-    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.isEmpty) return '';
-    final result = <String>[];
-    int count = 0;
-    for (int i = digits.length - 1; i >= 0; i--) {
-      if (count > 0 && count % 3 == 0) result.add('.');
-      result.add(digits[i]);
-      count++;
-    }
-    return result.reversed.join();
-  }
 
-  int _parseFormattedPrice(String value) {
-    return int.tryParse(value.replaceAll('.', '')) ?? 0;
-  }
 
   bool get _hasUnsavedChanges {
     return _name.text.trim().isNotEmpty ||
@@ -138,7 +114,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   void _save() async {
     final nama = _name.text.trim();
-    final harga = _parseFormattedPrice(_price.text);
+    final harga = FormatUtils.parseFormattedPrice(_price.text);
     final stok = int.tryParse(_stock.text) ?? 1;
     final desc = _desc.text.trim();
 
@@ -265,7 +241,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                   ),
                   onChanged: (value) {
-                    final formatted = _formatPriceInput(value);
+                    final formatted = FormatUtils.formatPriceInput(value);
                     if (formatted != _price.text) {
                       _price.text = formatted;
                       _price.selection = TextSelection.collapsed(
@@ -297,8 +273,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     border: Border.all(color: Colors.grey[200]!),
                   ),
                   child: DropdownButtonFormField<String>(
-                    initialValue: _kategori,
-                    items: _categories
+                    value: _kategori,
+                    items: productCategories
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (v) => setState(() => _kategori = v ?? 'Lainnya'),

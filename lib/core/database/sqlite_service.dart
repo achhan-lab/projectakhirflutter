@@ -14,6 +14,7 @@ class SQLiteService {
     'products': [],
     'product_images': [],
     'forum_posts': [],
+    'colabs': [],
   };
 
   Future<Database> get db async {
@@ -36,9 +37,12 @@ class SQLiteService {
 
       final database = await openDatabase(
         path,
-        version: 3,
+        version: 4,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
+        onOpen: (db) async {
+          await db.execute('PRAGMA foreign_keys = ON');
+        },
       );
 
       debugPrint('✅ Database initialized successfully');
@@ -76,7 +80,8 @@ class SQLiteService {
           kategori TEXT,
           deskripsi TEXT,
           created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
       ''');
 
@@ -85,7 +90,8 @@ class SQLiteService {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           product_id INTEGER NOT NULL,
           image_path TEXT NOT NULL,
-          created_at TEXT NOT NULL
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
         )
       ''');
 
@@ -97,9 +103,56 @@ class SQLiteService {
           kategori TEXT DEFAULT 'Diskusi',
           likes INTEGER DEFAULT 0,
           comments INTEGER DEFAULT 0,
-          created_at TEXT NOT NULL
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
       ''');
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS colabs(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          judul TEXT NOT NULL,
+          deskripsi TEXT NOT NULL,
+          kategori TEXT DEFAULT 'Project',
+          tujuan TEXT NOT NULL,
+          max_anggota INTEGER DEFAULT 5,
+          current_anggota INTEGER DEFAULT 1,
+          status TEXT DEFAULT 'Open',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      ''');
+
+      // Create indexes for frequently queried columns
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_products_user_id ON products(user_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_products_kategori ON products(kategori)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_forum_posts_user_id ON forum_posts(user_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_forum_posts_kategori ON forum_posts(kategori)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_colabs_user_id ON colabs(user_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_colabs_kategori ON colabs(kategori)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_colabs_status ON colabs(status)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
+      );
 
       debugPrint('✅ All tables created successfully');
     } catch (e) {
@@ -124,7 +177,54 @@ class SQLiteService {
       ''');
     }
     if (oldVersion < 3) {
-      await db.execute('ALTER TABLE products ADD COLUMN stok INTEGER DEFAULT 0');
+      await db.execute(
+        'ALTER TABLE products ADD COLUMN stok INTEGER DEFAULT 0',
+      );
+    }
+    if (oldVersion < 4) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS colabs(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          judul TEXT NOT NULL,
+          deskripsi TEXT NOT NULL,
+          kategori TEXT DEFAULT 'Project',
+          tujuan TEXT NOT NULL,
+          max_anggota INTEGER DEFAULT 5,
+          current_anggota INTEGER DEFAULT 1,
+          status TEXT DEFAULT 'Open',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+      // Add indexes
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_products_user_id ON products(user_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_products_kategori ON products(kategori)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_forum_posts_user_id ON forum_posts(user_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_forum_posts_kategori ON forum_posts(kategori)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_colabs_user_id ON colabs(user_id)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_colabs_kategori ON colabs(kategori)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_colabs_status ON colabs(status)',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
+      );
     }
   }
 
@@ -260,9 +360,17 @@ class SQLiteService {
         final parts = where.split(' AND ');
         for (int i = 0; i < parts.length; i++) {
           final part = parts[i].trim();
-          final field = part.split('=')[0].trim();
-          final val = whereArgs[i];
-          if (row[field] != val) return false;
+          if (part.contains(' LIKE ')) {
+            final field = part.split(' LIKE ')[0].trim();
+            final val = whereArgs[i] as String;
+            final searchVal = val.replaceAll('%', '').toLowerCase();
+            final rowVal = row[field]?.toString().toLowerCase() ?? '';
+            if (!rowVal.contains(searchVal)) return false;
+          } else {
+            final field = part.split('=')[0].trim();
+            final val = whereArgs[i];
+            if (row[field] != val) return false;
+          }
         }
         return true;
       }).toList();

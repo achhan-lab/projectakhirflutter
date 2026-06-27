@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/skeleton_loading.dart';
 import '../../widgets/category_chip.dart';
+import '../home/home_screen.dart';
 import '../products/product_detail_screen.dart';
 
 class BerandaScreen extends StatefulWidget {
@@ -14,7 +15,10 @@ class BerandaScreen extends StatefulWidget {
   State<BerandaScreen> createState() => _BerandaScreenState();
 }
 
-class _BerandaScreenState extends State<BerandaScreen> {
+class _BerandaScreenState extends RefreshableState<BerandaScreen> {
+
+  @override
+  void refreshData() => _loadData();
   final _searchCtrl = TextEditingController();
   String _selectedKategori = '';
   List<ProductModel> _products = [];
@@ -214,19 +218,25 @@ class _BerandaScreenState extends State<BerandaScreen> {
                             ),
                           ),
                         ),
-                        if (_searchCtrl.text.isNotEmpty)
-                          InkWell(
-                            onTap: _clearSearch,
-                            borderRadius: BorderRadius.circular(8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Icon(
-                                Icons.close_rounded,
-                                color: Colors.grey[400],
-                                size: 20,
-                              ),
-                            ),
-                          ),
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _searchCtrl,
+                          builder: (_, value, __) {
+                            return value.text.isNotEmpty
+                                ? InkWell(
+                                    onTap: _clearSearch,
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Icon(
+                                        Icons.close_rounded,
+                                        color: Colors.grey[400],
+                                        size: 20,
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink();
+                          },
+                        ),
                         const SizedBox(width: 8),
                       ],
                     ),
@@ -376,6 +386,21 @@ class _BerandaScreenState extends State<BerandaScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[500],
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/add-product'),
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Produk'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF27AE60),
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ],

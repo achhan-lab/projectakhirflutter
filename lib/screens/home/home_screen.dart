@@ -3,6 +3,7 @@ import 'beranda_screen.dart';
 import '../products/my_products_screen.dart';
 import '../profile/profile_screen.dart';
 import '../forum/forum_screen.dart';
+import '../colab/colab_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,89 +15,34 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _idx = 0;
 
+  // Keys to refresh screens when switching tabs
+  final List<GlobalKey<RefreshableState>> _tabKeys = List.generate(
+    5,
+    (_) => GlobalKey<RefreshableState>(),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        switchInCurve: Curves.easeIn,
-        switchOutCurve: Curves.easeOut,
-        child: _getPageForIndex(_idx),
-      ),
-      floatingActionButton: _idx == 0 ? _buildFAB() : _buildLogo(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  Widget _buildFAB() {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF27AE60), Color(0xFF2ECC71)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF27AE60).withValues(alpha: 0.5),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-            spreadRadius: -4,
-          ),
-          BoxShadow(
-            color: const Color(0xFF2ECC71).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
+      body: IndexedStack(
+        index: _idx,
+        children: [
+          BerandaScreen(key: _tabKeys[0]),
+          MyProductsScreen(key: _tabKeys[1]),
+          const ColabScreen(),
+          const ForumScreen(),
+          ProfileScreen(
+            key: _tabKeys[4],
+            onNavigateToTab: (tabIndex) {
+              setState(() => _idx = tabIndex);
+            },
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: () => Navigator.pushNamed(context, '/add-product'),
-          splashColor: Colors.white.withValues(alpha: 0.3),
-          highlightColor: Colors.white.withValues(alpha: 0.1),
-          child: const Icon(Icons.add, color: Colors.white, size: 30),
-        ),
-      ),
+      floatingActionButton: null,
+      floatingActionButtonLocation: null,
+      bottomNavigationBar: _buildBottomNav(),
     );
-  }
-
-  Widget _buildLogo() {
-    return FloatingActionButton(
-      onPressed: null,
-      elevation: 0,
-      highlightElevation: 0,
-      backgroundColor: Colors.white,
-      child: Image.asset(
-        'assets/images/samba.png',
-        width: 48,
-        height: 48,
-        fit: BoxFit.cover,
-      ),
-    );
-  }
-
-  Widget _getPageForIndex(int index) {
-    switch (index) {
-      case 0:
-        return const BerandaScreen();
-      case 1:
-        return const MyProductsScreen();
-      case 2:
-        return const ForumScreen();
-      case 3:
-        return ProfileScreen(onNavigateToTab: (tabIndex) {
-          setState(() => _idx = tabIndex);
-        });
-      default:
-        return const BerandaScreen();
-    }
   }
 
   Widget _buildBottomNav() {
@@ -147,12 +93,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildNavItem(
                       index: 2,
+                      icon: Icons.hub_outlined,
+                      activeIcon: Icons.hub_rounded,
+                      label: 'Colab',
+                    ),
+                    _buildNavItem(
+                      index: 3,
                       icon: Icons.forum_outlined,
                       activeIcon: Icons.forum_rounded,
                       label: 'Forum',
                     ),
                     _buildNavItem(
-                      index: 3,
+                      index: 4,
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
                       label: 'Profil',
@@ -176,7 +128,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final isActive = _idx == index;
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => _idx = index),
+        onTap: () {
+          setState(() => _idx = index);
+          // Refresh data when switching to tabs
+          if (index <= 1) {
+            _tabKeys[index].currentState?.refreshData();
+          }
+        },
         borderRadius: BorderRadius.circular(12),
         splashColor: const Color(0xFF27AE60).withValues(alpha: 0.08),
         child: SizedBox(
@@ -195,18 +153,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Icon(
                   isActive ? activeIcon : icon,
-                  color:
-                      isActive ? const Color(0xFF27AE60) : Colors.grey[400],
-                  size: 24,
+                  color: isActive ? const Color(0xFF27AE60) : Colors.grey[400],
+                  size: 22,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
-                  color:
-                      isActive ? const Color(0xFF27AE60) : Colors.grey[400],
+                  fontSize: 10,
+                  color: isActive ? const Color(0xFF27AE60) : Colors.grey[400],
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
@@ -216,4 +172,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+/// Mixin for screens that can be refreshed
+abstract class RefreshableState<T extends StatefulWidget> extends State<T> {
+  void refreshData();
 }

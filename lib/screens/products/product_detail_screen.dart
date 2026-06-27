@@ -5,6 +5,7 @@ import '../../models/product_image_model.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_toast.dart';
+import '../../core/utils/format_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'edit_product_screen.dart';
 
@@ -64,14 +65,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  /// Convert 08xxx to 628xxx and strip non-digits
-  String _formatPhone(String phone) {
-    final cleaned = phone.replaceAll(RegExp(r'[^0-9]'), '');
-    if (cleaned.startsWith('0')) {
-      return '62${cleaned.substring(1)}';
-    }
-    return cleaned;
-  }
+
 
   void _contactSeller(BuildContext context) async {
     try {
@@ -86,7 +80,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         );
         return;
       }
-      final phone = _formatPhone(rawPhone);
+      final phone = FormatUtils.formatPhone(rawPhone);
       final msg = Uri.encodeComponent(
         'Halo $_sellerName, saya tertarik dengan produk "${widget.product.namaProduk}" yang Anda jual di SAMBA.',
       );
@@ -165,12 +159,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -326,7 +315,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Rp ${_formatPrice(widget.product.harga)}',
+                          'Rp ${FormatUtils.formatPrice(widget.product.harga)}',
                           style: const TextStyle(
                             fontSize: 24,
                             color: Color(0xFF27AE60),
@@ -362,6 +351,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       color: Color(0xFF1A1A2E),
                       height: 1.3,
                     ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Stock info
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 16,
+                        color: widget.product.stok > 0
+                            ? const Color(0xFF3B82F6)
+                            : Colors.red,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.product.stok > 0
+                            ? 'Stok: ${widget.product.stok} tersedia'
+                            : 'Stok habis',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: widget.product.stok > 0
+                              ? const Color(0xFF3B82F6)
+                              : Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
 
