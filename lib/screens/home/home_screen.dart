@@ -73,16 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
       elevation: 0,
       highlightElevation: 0,
       backgroundColor: Colors.white,
-      child: ClipOval(
-        child: Container(
-          color: Colors.white,
-          child: Image.asset(
-            'assets/images/samba.png',
-            width: 48,
-            height: 48,
-            fit: BoxFit.cover,
-          ),
-        ),
+      child: Image.asset(
+        'assets/images/samba.png',
+        width: 48,
+        height: 48,
+        fit: BoxFit.cover,
       ),
     );
   }

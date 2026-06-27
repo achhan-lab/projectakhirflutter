@@ -114,13 +114,11 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ],
                     ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/samba.png',
-                        width: 130,
-                        height: 130,
-                        fit: BoxFit.cover,
-                      ),
+                    child: Image.asset(
+                      'assets/images/samba.png',
+                      width: 130,
+                      height: 130,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),

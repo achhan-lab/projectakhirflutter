@@ -479,14 +479,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     child: SizedBox(
                       height: 54,
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          final result = await Navigator.push<bool>(
                             context,
                             MaterialPageRoute(
                               builder: (_) =>
                                   EditProductScreen(product: widget.product),
                             ),
                           );
+                          if (result == true) _loadDetails();
                         },
                         icon: const Icon(Icons.edit_outlined, size: 20),
                         label: const Text(

@@ -192,14 +192,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(14),
-                              child: Image.asset(
-                                'assets/images/samba.png',
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                              ),
+                            child: Image.asset(
+                              'assets/images/samba.png',
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
                             ),
                           ),
                           const SizedBox(height: 8),

@@ -170,13 +170,11 @@ class _BerandaScreenState extends State<BerandaScreen> {
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/images/samba.png',
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                          ),
+                        child: Image.asset(
+                          'assets/images/samba.png',
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ],
